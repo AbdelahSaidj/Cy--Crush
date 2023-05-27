@@ -1,13 +1,33 @@
 #include "header.h"
 
+
+void displayRandomPhrase() {
+    int randomIndex = rand() % 6;  // Génère un nombre aléatoire entre 0 et 5
+    char* phrases[] = {
+        "Nice combination!",
+        "Superb shot!",
+        "Impressive alignment!",
+        "Beautiful game!",
+        "Bravo for this combination!",
+        "You are amazing!"
+    };
+
+    printf("%s\n", phrases[randomIndex]);
+}
+
+
 void applyGravity(int** board, int height, int length) {
     for (int i = 0; i < height; i++) {
+        int emptySpaces = 0; // Compteur d'espaces vides
+
+        // Parcours de la ligne de droite à gauche
         for (int j = length - 1; j >= 0; j--) {
             if (board[i][j] == 0) {
-                for (int k = j; k > 0; k--) {
-                    board[i][k] = board[i][k - 1];
-                }
-                board[i][0] = 0;
+                emptySpaces++; // Incrémente le compteur d'espaces vides
+            } else if (emptySpaces > 0) {
+                // Déplacement des symboles vers la droite pour remplir les espaces vides
+                board[i][j + emptySpaces] = board[i][j];
+                board[i][j] = 0;
             }
         }
     }
@@ -24,15 +44,18 @@ void fillEmptySpaces(int** board, int height, int length, int symbols) {
 }
 
 int canMakeAlignment(int** board, int height, int length) {
+    int alignmentCount = 0; // Compteur d'alignements identiques
+
     // Recherche d'un alignement horizontal
     for (int i = 0; i < height; i++) {
         for (int j = 0; j < length - 2; j++) {
             if (board[i][j] != 0 && board[i][j] == board[i][j + 1]) {
                 // Recherche d'un symbole identique ailleurs dans la grille
+                alignmentCount = 0;
                 for (int x = 0; x < height; x++) {
                     for (int y = 0; y < length; y++) {
                         if ((x != i || y != j) && (board[x][y] != 0) && (board[x][y] == board[i][j])) {
-                            return 1; // Alignement possible trouvé
+                            alignmentCount++;
                         }
                     }
                 }
@@ -45,10 +68,11 @@ int canMakeAlignment(int** board, int height, int length) {
         for (int i = 0; i < height - 2; i++) {
             if (board[i][j] != 0 && board[i][j] == board[i + 1][j]) {
                 // Recherche d'un symbole identique ailleurs dans la grille
+                alignmentCount = 0;
                 for (int x = 0; x < height; x++) {
                     for (int y = 0; y < length; y++) {
                         if ((x != i || y != j) && (board[x][y] != 0) && (board[x][y] == board[i][j])) {
-                            return 1; // Alignement possible trouvé
+                            alignmentCount++;
                         }
                     }
                 }
@@ -56,14 +80,83 @@ int canMakeAlignment(int** board, int height, int length) {
         }
     }
 
-    return 0; // Aucun alignement possible trouvé
-} 
+    if (alignmentCount >= 2) {
+        return 1; // Au moins trois symboles identiques ont été trouvés
+    } else {
+        return 0; // Moins de trois symboles identiques trouvés
+    }
+}
+
+
+
+
+void checkSymbolsAdjacent(int** board, int height, int length, int numSymbols) {
+    int symbolsRemoved = 0;
+    int symbolsAdjacent = 1;
+
+    while (symbolsAdjacent) {
+        symbolsAdjacent = 0;
+
+        for (int i = 0; i < height; i++) {
+            for (int j = 0; j < length; j++) {
+                int symbol = board[i][j];
+
+                // Vérification des symboles adjacents horizontaux
+                if (symbol != 0 && j < length - 2 && board[i][j + 1] == symbol && board[i][j + 2] == symbol) {
+                    board[i][j] = 0;
+                    board[i][j + 1] = 0;
+                    board[i][j + 2] = 0;
+                    symbolsRemoved += 3;
+                    symbolsAdjacent = 1;
+                } else if (symbol != 0 && j == length - 2 && board[i][j + 1] == symbol && board[i][0] == symbol) {
+                    board[i][j] = 0;
+                    board[i][j + 1] = 0;
+                    board[i][0] = 0;
+                    symbolsRemoved += 3;
+                    symbolsAdjacent = 1;
+                } else if (symbol != 0 && j == length - 1 && board[i][0] == symbol && board[i][1] == symbol) {
+                    board[i][j] = 0;
+                    board[i][0] = 0;
+                    board[i][1] = 0;
+                    symbolsRemoved += 3;
+                    symbolsAdjacent = 1;
+                }
+
+                // Vérification des symboles adjacents verticaux
+                if (symbol != 0 && i < height - 2 && board[i + 1][j] == symbol && board[i + 2][j] == symbol) {
+                    board[i][j] = 0;
+                    board[i + 1][j] = 0;
+                    board[i + 2][j] = 0;
+                    symbolsRemoved += 3;
+                    symbolsAdjacent = 1;
+                } else if (symbol != 0 && i == height - 2 && board[i + 1][j] == symbol && board[0][j] == symbol) {
+                    board[i][j] = 0;
+                    board[i + 1][j] = 0;
+                    board[0][j] = 0;
+                    symbolsRemoved += 3;
+                    symbolsAdjacent = 1;
+                } else if (symbol != 0 && i == height - 1 && board[0][j] == symbol && board[1][j] == symbol) {
+                    board[i][j] = 0;
+                    board[0][j] = 0;
+                    board[1][j] = 0;
+                    symbolsRemoved += 3;
+                    symbolsAdjacent = 1;
+                }
+            }
+        }
+
+        if (symbolsRemoved) {
+            applyGravity(board, height, length);
+            fillEmptySpaces(board, height, length, numSymbols); // Remplir les espaces vides avec de nouveaux symboles
+            symbolsRemoved = 0;
+        }
+    }
+}
 
 void checkAndCollapse(int** board, int height, int length, int* score, int numSymbols) {
     int collapse = 0;
     int symbolsDestroyed = 0;
-
-    // Vérification des combinaisons horizontales
+// Vérification des combinaisons horizontales
     for (int i = 0; i < height; i++) {
         int count = 1; // Variable pour compter le nombre de symboles alignés
         for (int j = 0; j < length - 1; j++) {
@@ -119,98 +212,113 @@ void checkAndCollapse(int** board, int height, int length, int* score, int numSy
         }
     }
 
+    // Vérification des combinaisons sur les bords verticaux
+    for (int j = 0; j < length; j++) {
+        int symbol = board[height - 2][j];
+        if (symbol != 0 && board[height - 1][j] == symbol && board[0][j] == symbol) {
+            board[height - 2][j] = 0;
+            board[height - 1][j] = 0;
+            board[0][j] = 0;
+            collapse = 1;
+        }
+
+        symbol = board[height - 1][j];
+        if (symbol != 0 && board[0][j] == symbol && board[1][j] == symbol) {
+            board[height - 1][j] = 0;
+            board[0][j] = 0;
+            board[1][j] = 0;
+            collapse = 1;
+        }
+    }
+
+    // Vérification des combinaisons sur les bords horizontaux
+    for (int i = 0; i < height; i++) {
+        int symbol = board[i][length - 2];
+        if (symbol != 0 && board[i][length - 1] == symbol && board[i][0] == symbol) {
+            board[i][length - 2] = 0;
+            board[i][length - 1] = 0;
+            board[i][0] = 0;            
+            collapse = 1;
+        }
+
+        symbol = board[i][length - 1];
+        if (symbol != 0 && board[i][0] == symbol && board[i][1] == symbol) {
+            board[i][length - 1] = 0;
+            board[i][0] = 0;
+            board[i][1] = 0;
+            collapse = 1;
+        }
+    }
+
     if (collapse) {
-        *score += symbolsDestroyed; // Ajouter le nombre de symboles détruits au score
+        symbolsDestroyed += 3;
         applyGravity(board, height, length);
         fillEmptySpaces(board, height, length, numSymbols); // 6 est le nombre de symboles possibles
-        checkAndCollapse(board, height, length, score, numSymbols);
+        checkAndCollapse( board, height, length, score, numSymbols);
     }
+    *score += symbolsDestroyed; // Ajouter le nombre de symboles détruits au score
 }
+
 
 int hasMatch(int** board, int height, int length, int row, int col) {
     int symbol = board[row][col];
-    int matchFound = 0;
 
-    // Phrases "Belle combinaison" possibles
-    const char* phrases[] = {
-        "Belle combinaison !",
-        "Superbe alignement !",
-        "Impressionnant ! Une combinaison !",
-        "Magnifique ! C'est un match !",
-        "Wow ! Regardez cette combinaison !",
-        "Incroyable ! Vous avez trouvé un alignement !",
-        "Bravo ! C'est un superbe alignement !",
-        "Fantastique ! Une combinaison parfaite !",
-        "Extraordinaire ! Un alignement incroyable !",
-        "Exceptionnel ! C'est une combinaison géniale !"
-    };
-
-    int numPhrases = sizeof(phrases) / sizeof(phrases[0]);
-
-    // Tableau pour suivre les phrases déjà utilisées
-    static int usedPhrases[10] = { 0 };
-
-    // Vérifier combien de phrases ont été utilisées
-    int phrasesUsed = 0;
-    for (int i = 0; i < numPhrases; i++) {
-        if (usedPhrases[i] == 1) {
-            phrasesUsed++;
-        }
-    }
-
-    // Si toutes les phrases ont été utilisées, réinitialiser le tableau usedPhrases
-    if (phrasesUsed == numPhrases) {
-        for (int i = 0; i < numPhrases; i++) {
-            usedPhrases[i] = 0;
-        }
-        phrasesUsed = 0;
-    }
-
-    // Sélection aléatoire d'une phrase non utilisée
-    srand(time(NULL));
-    int randomIndex = rand() % numPhrases;
-    while (usedPhrases[randomIndex] == 1) {
-        randomIndex = rand() % numPhrases;
-    }
-    usedPhrases[randomIndex] = 1;
-
-    const char* phrase = phrases[randomIndex];
-
-    // Vérification des combinaisons horizontales
+    // Vérification des lignes horizontales
     if (col >= 2 && board[row][col - 1] == symbol && board[row][col - 2] == symbol) {
-        matchFound = 1;
+        return 1;
     }
-    else if (col <= length - 3 && board[row][col + 1] == symbol && board[row][col + 2] == symbol) {
-        matchFound = 1;
+    if (col <= length - 3 && board[row][col + 1] == symbol && board[row][col + 2] == symbol) {
+        return 1;
     }
-    else if (col == 0 && board[row][length - 1] == symbol && board[row][length - 2] == symbol) {
-        matchFound = 1;
+    if (col == 0 && board[row][length - 1] == symbol && board[row][length - 2] == symbol) {
+        return 1;
     }
-    else if (col == length - 1 && board[row][0] == symbol && board[row][1] == symbol) {
-        matchFound = 1;
-    }
-
-    // Vérification des combinaisons verticales
-    else if (row >= 2 && board[row - 1][col] == symbol && board[row - 2][col] == symbol) {
-        matchFound = 1;
-    }
-    else if (row <= height - 3 && board[row + 1][col] == symbol && board[row + 2][col] == symbol) {
-        matchFound = 1;
-    }
-    else if (row == 0 && board[height - 1][col] == symbol && board[height - 2][col] == symbol) {
-        matchFound = 1;
-    }
-    else if (row == height - 1 && board[0][col] == symbol && board[1][col] == symbol) {
-        matchFound = 1;
+    if (col == length - 1 && board[row][0] == symbol && board[row][1] == symbol) {
+        return 1;
     }
 
-    // Affichage de la phrase uniquement lorsque matchFound est vrai
-    if (matchFound) {
-        printf("%s\n", phrase);
+    // Vérification des colonnes verticales
+    if (row >= 2 && board[row - 1][col] == symbol && board[row - 2][col] == symbol) {
+        return 1;
+    }
+    if (row <= height - 3 && board[row + 1][col] == symbol && board[row + 2][col] == symbol) {
+        return 1;
+    }
+    if (row == 0 && board[height - 1][col] == symbol && board[height - 2][col] == symbol) {
+        return 1;
+    }
+    if (row == height - 1 && board[0][col] == symbol && board[1][col] == symbol) {
+        return 1;
     }
 
-    return matchFound;
+   if (row == 0 && board[height - 1][col] == symbol && board[height - 2][col] == symbol) {
+        return 1;
+    }
+    if (row == height - 1 && board[0][col] == symbol && board[1][col] == symbol) {
+        return 1;
+    }
+
+    // Bord de gauche et de droite
+    if (col == 0 && board[row][length - 1] == symbol && board[row][length - 2] == symbol) {
+        return 1;
+    }
+    if (col == length - 1 && board[row][0] == symbol && board[row][1] == symbol) {
+        return 1;
+    }
+
+    // Vérification des correspondances spécifiques aux bords connectés
+    // Bord de gauche et extrémité droite
+    if (col == 0 && board[row][length - 1] == symbol && board[row][length - 2] == symbol && board[row][1] == symbol) {
+        return 1;
+    }
+    // Extrémité droite et bord de gauche
+    if (col == length - 1 && board[row][0] == symbol && board[row][1] == symbol && board[row][length - 2] == symbol) {
+        return 1;
+    }
+
+    return 0; // Aucun match trouvé
 }
+
 
 void swapSymbols(int** board, int height, int length, int score, int row1, int col1, int row2, int col2, int numSymbols) {
     int temp = board[row1][col1];
@@ -224,7 +332,7 @@ void swapSymbols(int** board, int height, int length, int score, int row1, int c
         temp = board[row1][col1];
         board[row1][col1] = board[row2][col2];
         board[row2][col2] = temp;
-        printf("Aucun match trouvé. Réessayez.\n");
+        printf("No match found. Try again.\n");
         return;
     }
 }
