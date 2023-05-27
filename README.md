@@ -9,7 +9,7 @@ CyCrush est un jeu de puzzle inspiré du célèbre CandyCrush dans lequel vous d
 
 Compilation 
 
-Pour compiler le jeu, vous devez disposer d'un compilateur C (par exemple, GCC,replit github) installé sur votre système. 
+Pour compiler le jeu, vous devez disposer d'un compilateur C (par exemple, GCC,replit github) installé sur votre système. (pour github rien n'est demandé)
 
  
 
