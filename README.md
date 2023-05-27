@@ -56,7 +56,7 @@ checkAndCollapse: Vérifie et supprime les alignements de symboles, en les rempl
 Bugs 
 
 Message d’erreur lors du chargement d’une partie sauvegardée. 
-
+quelque fois pour raison inconnu, "match not found try again"
  
 
  
