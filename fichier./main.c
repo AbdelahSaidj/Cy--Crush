@@ -1,10 +1,11 @@
-#include "header.h"
-
 int main() {
+  char sauvegardes[MAX_SAUVEGARDES][100];
+int nombreSauvegardes = 0;
+     FILE* fichierSauvegardes;
     int choix;
 
     printf("\033[1;34m╔════════════════════════════════════╗\n");
-    printf("║\033[1;36m      Bienvenue dans CY Crush       \033[1;34m║\n");
+    printf("║\033[1;36m      Welcome to CY Crush           \033[1;34m║\n");
     printf("╠════════════════════════════════════╣\n");
     printf("║              Menu:                 ║\n");
     printf("║                                    ║\n");
@@ -45,131 +46,111 @@ int main() {
             printf("║        votre partie.               ║\n");
             printf("╚════════════════════════════════════╝\n");
             break;
-       case 2:
-    {
-        int hauteur, longueur, symboles, score;
-        int** plateau = NULL;
-
-        // Afficher les sauvegardes disponibles
-        printf("Liste des sauvegardes :\n");
-        afficherSauvegardes();
-
-        // Demander à l'utilisateur de sélectionner une sauvegarde
-        int selection;
-        printf("Veuillez entrer le numéro de la sauvegarde que vous souhaitez charger : ");
-        scanf("%d", &selection);
-
-        // Construire le nom de fichier correspondant à la sauvegarde sélectionnée
-        char nomSauvegarde[100];
-        snprintf(nomSauvegarde, sizeof(nomSauvegarde), "sauvegarde%d.txt", selection);
-
-        chargerPartie(nomSauvegarde, &hauteur, &longueur, &symboles, &score, &plateau);
-
-        if (plateau != NULL) {
-            // Ajoutez ici le code pour continuer le jeu à partir du point de chargement
-            printf("\033[1;34mChargement de la partie...\n");
-            printf("Partie chargée avec succès.\n");
-            printf("Hauteur : %d\n", hauteur);
-            printf("Longueur : %d\n", longueur);
-            printf("Symboles : %d\n", symboles);
-            printf("Score : %d\n", score);
-
-            // Poursuivre le jeu avec les données chargées
-            // ...
-
-            // Libérer la mémoire allouée pour le plateau de jeu
-            for (int i = 0; i < hauteur; i++) {
-                free(plateau[i]);
-            }
-            free(plateau);
-
-            printf("Le jeu a été repris à partir de la sauvegarde.\n");
-        } else {
-            printf("Erreur lors du chargement de la partie. Veuillez vérifier le fichier de sauvegarde.\n");
-        }
+        case 2:
+        fichierSauvegardes = fopen("sauvegardes.txt", "r");
+if (fichierSauvegardes != NULL) {
+    int i = 0;
+    while (fgets(sauvegardes[i], 100, fichierSauvegardes) != NULL && i < MAX_SAUVEGARDES) {
+        // Supprimer le saut de ligne à la fin du nom de fichier
+        sauteLigne(sauvegardes[i]);
+        i++;
     }
-    break;
+    nombreSauvegardes = i;
+    fclose(fichierSauvegardes);
+}
+            printf("Available backups :\n");
+for (int i = 0; i < nombreSauvegardes; i++) {
+    printf("%d. %s\n", i+1, sauvegardes[i]);
+}
+printf("Enter the number of the backup to upload: ");
+int choix;
+scanf("%d", &choix);
+
+if (choix >= 1 && choix <= nombreSauvegardes) {
+    char* nomSauvegarde = sauvegardes[choix-1];
+    // Appeler la fonction pour charger la sauvegarde correspondante (à implémenter)
+  
+   
+} else {
+    printf("Invalid backup number.\n");
+}
+            break;
         case 3:
-            printf("Au revoir !\n");
+            printf("Good bye!\n");
             return 0;
         default:
-            printf("Option invalide. Veuillez choisir une option valide.\n");
+            printf("Invalid option. Please choose a valid option.\n");
             return 0;
     }
 
     // Si l'option choisie n'est pas "Quitter", vous pouvez ajouter ici le reste du code du jeu
 
- int height, length, symbols;
+    int height, length, symbols;
     int score = 0;
 
     while (1) {
-        printf("\033[1;33m"); // Couleur jaune vif pour les phrases d'invitation
-        printf("Entrez la hauteur de la grille : ");
-        printf("\033[0m"); // Réinitialisation des couleurs
+    printf("\033[1;33m"); // Couleur jaune vif pour les phrases d'invitation
+    printf("Enter the height of the grid: ");
+    printf("\033[0m"); // Réinitialisation des couleurs
 
-        char* input = malloc(sizeof(char) * 100); // Allocation dynamique de mémoire pour l'entrée
-        scanf("%s", input);
+    char input[10];
+    scanf("%s", input);
 
-        if (strcmp(input, "E") == 0 || strcmp(input, "e") == 0) {
-            printf("Au revoir !\n");
-            free(input); // Libération de la mémoire allouée dynamiquement
-            return 0;
-        }
-      
-        if (sscanf(input, "%d", &height) != 1 || height < 3 || height > 25) {
-            printf("\033[1;31m"); // Couleur rouge vif pour les messages d'erreur
-            printf("La hauteur de la grille doit être un nombre entier entre 3 et 25 inclus. Réessayez.\n");
-            printf("\033[0m"); // Réinitialisation des couleurs
-        } else {
-            free(input); // Libération de la mémoire allouée dynamiquement
-            break;
-        }
+    if (strcmp(input, "E") == 0) {
+        printf("Good bye!\n");
+        return 0;
     }
+
+    if (sscanf(input, "%d", &height) != 1 || height < 3 || height > 25) {
+        printf("\033[1;31m"); // Couleur rouge vif pour les messages d'erreur
+        printf("The height of the grid must be an integer between 3 and 25 inclusive. Try again.\n");
+        printf("\033[0m"); // Réinitialisation des couleurs
+    } else {
+        break;
+    }
+}
+
+while (1) {
+    printf("\033[1;33m"); // Couleur jaune vif pour les phrases d'invitation
+    printf("Enter the length of the grid : ");
+    printf("\033[0m"); // Réinitialisation des couleurs
+
+    char input[10];
+    scanf("%s", input);
+
+    if (strcmp(input, "E") == 0) {
+        printf("Good bye!\n");
+        return 0;
+    }
+
+    if (sscanf(input, "%d", &length) != 1 || length < 3 || length > 25) {
+        printf("\033[1;31m"); // Couleur rouge vif pour les messages d'erreur
+        printf("The length of the grid must be an integer between 3 and 25 inclusive. Try again.\n");
+        printf("\033[0m"); // Réinitialisation des couleurs
+    } else {
+        break;
+    }
+}
+
 
     while (1) {
         printf("\033[1;33m"); // Couleur jaune vif pour les phrases d'invitation
-        printf("Entrez la longueur de la grille : ");
+        printf("Enter the number of symbols (between 4 and 6) : ");
         printf("\033[0m"); // Réinitialisation des couleurs
 
-        char* input = malloc(sizeof(char) * 100); // Allocation dynamique de mémoire pour l'entrée
+        char input[10];
         scanf("%s", input);
 
-        if (strcmp(input, "E") == 0 || strcmp(input, "e") == 0) {
-            printf("Au revoir !\n");
-            free(input); // Libération de la mémoire allouée dynamiquement
-            return 0;
-        }
-
-        if (sscanf(input, "%d", &length) != 1 || length < 3 || length > 25) {
-            printf("\033[1;31m"); // Couleur rouge vif pour les messages d'erreur
-            printf("La longueur de la grille doit être un nombre entier entre 3 et 25 inclus. Réessayez.\n");
-            printf("\033[0m"); // Réinitialisation des couleurs
-        } else {
-            free(input); // Libération de la mémoire allouée dynamiquement
-            break;
-        }
-    }
-
-    while (1) {
-        printf("\033[1;33m"); // Couleur jaune vif pour les phrases d'invitation
-        printf("Entrez le nombre de symboles (entre 4 et 6) : ");
-        printf("\033[0m"); // Réinitialisation des couleurs
-
-        char* input = malloc(sizeof(char) * 100); // Allocation dynamique de mémoire pour l'entrée
-        scanf("%s", input);
-
-        if (strcmp(input, "E") == 0 || strcmp(input, "e") == 0) {
-            printf("Au revoir !\n");
-            free(input); // Libération de la mémoire allouée dynamiquement
+        if (strcmp(input, "E") == 0) {
+            printf("Good bye !\n");
             return 0;
         }
 
         if (sscanf(input, "%d", &symbols) != 1 || symbols < 4 || symbols > 6) {
             printf("\033[1;31m"); // Couleur rouge vif pour les messages d'erreur
-            printf("Le nombre de symboles doit être un nombre entier entre 4 et 6. Réessayez.\n");
+            printf("The number of symbols must be an integer between 4 and 6. Try again.\n");
             printf("\033[0m"); // Réinitialisation des couleurs
         } else {
-            free(input); // Libération de la mémoire allouée dynamiquement
             break;
         }
     }
@@ -179,48 +160,86 @@ int main() {
     printf("Grille créée : hauteur = %d, longueur = %d, symboles = %d\n", height, length, symbols);
     printf("\033[0m"); // Réinitialisation des couleurs
 
-   int** board = malloc(height * sizeof(int*));
+    int** board = malloc(height * sizeof(int*));
 for (int i = 0; i < height; i++) {
     board[i] = calloc(length, sizeof(int));
 }
 
 boardInitializer(board, height, length, symbols);
+// Après l'appel à boardInitializer
+checkSymbolsAdjacent(board, height, length, symbols);
+
 displayBoard(board, height, length, &score);
 
-while (1) {
+    while (1) {
     int row1, col1, row2, col2;
 
-    printf("Choisissez les coordonnées du premier symbole à interchanger (lettre chiffre) : ");
+    printf("Choose the coordinates of the first symbol to interchange (number letter) : ");
     char column1;
     char input1[100];
     scanf("%s", input1);
 
     if (strcmp(input1, "E") == 0 || strcmp(input1, "e") == 0) {
-        printf("Au revoir !\n");
+        printf("Good bye !\n");
         break;
+    }
+    if (strcmp(input1, "S") == 0 || strcmp(input1, "s") == 0) {
+        printf("Backup Name : ");
+        char saveName[100];
+        scanf("%s", saveName);
+        sauvegarderPartie(saveName, height, length, symbols, score, board);
+
+        printf("Backup added : %s\n", saveName);
+        strcpy(sauvegardes[nombreSauvegardes], saveName);
+nombreSauvegardes++;
+FILE* fichierSauvegardes = fopen("sauvegardes.txt", "a");
+if (fichierSauvegardes != NULL) {
+    fprintf(fichierSauvegardes, "%s\n", saveName);
+    fclose(fichierSauvegardes);
+        // Effectuer la sauvegarde de partie avec saveName
+        continue;
+    }
     }
 
     if (sscanf(input1, " %c%d", &column1, &row1) != 2 || row1 < 1 || row1 > height || column1 < 'A' || column1 > 'A' + length) {
-        printf("Coordonnées invalides. Réessayez.\n");
+        printf("Invalid contact information. Try again.\n");
         continue;
     }
     col1 = column1 - 'A';
 
-    printf("Choisissez les coordonnées du deuxième symbole à interchanger (lettre chiffre) : ");
+    printf("Choose the coordinates of the second symbol to interchange (number letter): ");
     char column2;
     char input2[100];
     scanf("%s", input2);
 
     if (strcmp(input2, "E") == 0 || strcmp(input2, "e") == 0) {
-        printf("Au revoir !\n");
+        printf("Good bye !\n");
         break;
+    }
+    if (strcmp(input2, "S") == 0 || strcmp(input2, "s") == 0) {
+        printf("Backup Name : ");
+        char saveName[100];
+        scanf("%s", saveName);
+        sauvegarderPartie(saveName, height, length, symbols, score, board);
+
+        printf("Backup added : %s\n", saveName);
+        strcpy(sauvegardes[nombreSauvegardes], saveName);
+nombreSauvegardes++;
+FILE* fichierSauvegardes = fopen("sauvegardes.txt", "a");
+if (fichierSauvegardes != NULL) {
+    fprintf(fichierSauvegardes, "%s\n", saveName);
+    fclose(fichierSauvegardes);
+        // Effectuer la sauvegarde de partie avec saveName
+        continue;
+    }
     }
 
     if (sscanf(input2, " %c%d", &column2, &row2) != 2 || row2 < 1 || row2 > height || column2 < 'A' || column2 > 'A' + length) {
-        printf("Coordonnées invalides. Réessayez.\n");
+        printf("Invalid contact information. Try again.\n");
         continue;
     }
     col2 = column2 - 'A';
+
 
 
     // Interchange les symboles sélectionnés
@@ -228,15 +247,16 @@ while (1) {
 
     // Vérifie si l'interchange a créé au moins trois symboles identiques
     int** copy = board_copy(board, height, length);
-    if (verifyInitialization(copy, height, length)) {
-        canMakeAlignment(board, height, length);
+if (verifyInitialization(copy, height, length)) {
+    if (canMakeAlignment(board, height, length)) {
         checkAndCollapse(board, height, length, &score, symbols);
         applyGravity(board, height, length);
         fillEmptySpaces(board, height, length, symbols);
         displayBoard(board, height, length, &score);
     } else {
-        printf("L'interchange ne crée pas au moins trois symboles identiques. Réessayez.\n");
+        printf("Interchange does not create at least three identical symbols. Try again.\n");
     }
+} 
 
     for (int i = 0; i < height; i++) {
         free(copy[i]);
@@ -245,30 +265,10 @@ while (1) {
 
     // Vérifie si un alignement est possible
     if (!canMakeAlignment(board, height, length)) {
-        printf("Partie terminée ! Score final : %d\n", score);
+        printf("Game over! Final score : %d\n", score);
         break; // Quitte la boucle principale pour sortir du jeu
     }
-  // Propose au joueur de quitter et sauvegarder la partie
-printf("Voulez-vous quitter et sauvegarder la partie ? (Appuyez sur 'S' pour sauvegarder, ou une autre touche pour continuer) : ");
-char choice;
-scanf(" %c", &choice);
-
-if (choice == 'S' || choice == 's') {
-            // Demande à l'utilisateur de saisir le nom de la sauvegarde
-            char nomSauvegarde[100];
-            printf("Nommez votre sauvegarde : ");
-            scanf("%s", nomSauvegarde);
-
-            // Sauvegarde de la partie avec le nom spécifié par l'utilisateur
-            sauvegarderPartie(nomSauvegarde, height, length, symbols, score, board);
-            printf("Partie sauvegardée ! Au revoir !\n");
-            break;
-        }
-
-        // Continuer à jouer
-        printf("Continuer la partie...\n");
-    }
-
+}
 
 for (int i = 0; i < height; i++) {
     free(board[i]);
