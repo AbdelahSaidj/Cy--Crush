@@ -1,104 +1,70 @@
 #include "header.h"
 
-void sauvegarderPartie(const char* nomFichier, int hauteur, int longueur, int symboles, int score, int** plateau) {
+void sauvegarderPartie(const char* nomFichier, int hauteur, int longueur, int symboles, int score, int** board) {
     FILE* fichier = fopen(nomFichier, "w");
     if (fichier != NULL) {
-        fprintf(fichier, "%d\n%d\n%d\n%d\n", hauteur, longueur, symboles, score);
+        // Écriture des informations de la partie
+        if (fprintf(fichier, "%d\n%d\n%d\n%d\n", hauteur, longueur, symboles, score) < 0) {
+            printf("Error writing to backup file.\n");
+            fclose(fichier);
+            return;
+        }
+
+        // Écriture de l'état du board
         for (int i = 0; i < hauteur; i++) {
             for (int j = 0; j < longueur; j++) {
-                fprintf(fichier, "%d ", plateau[i][j]);
+                fprintf(fichier, "%d ", board[i][j]);
             }
             fprintf(fichier, "\n");
         }
+
         fclose(fichier);
-        printf("Partie sauvegardée avec succès.\n");
+        printf("Successfully saved game.\n");
     } else {
-        printf("Erreur lors de l'ouverture du fichier de sauvegarde.\n");
+        printf("Error opening backup file.\n");
     }
 }
 
-void chargerPartie(const char* nomFichier, int* hauteur, int* longueur, int* symboles, int* score, int*** plateau) {
-    FILE* fichier = fopen(nomFichier, "r");
-    if (fichier != NULL) {
-        if (fscanf(fichier, "%d\n%d\n%d\n%d\n", hauteur, longueur, symboles, score) != 4) {
-            printf("Erreur lors de la lecture du fichier de sauvegarde.\n");
-        } else {
-            // Allouer de la mémoire pour le plateau de jeu
-            *plateau = malloc(*hauteur * sizeof(int*));
-            for (int i = 0; i < *hauteur; i++) {
-                (*plateau)[i] = malloc(*longueur * sizeof(int));
-            }
+int chargerPartie(const char* nomFichier, int*** board, int* hauteur, int* longueur, int* symboles, int* score) {
+    FILE* fichierSauvegarde = fopen(nomFichier, "r");
+    if (fichierSauvegarde == NULL) {
+        printf("Erreur : Unable to open backup file.\n");
+        return 0; // Échec du chargement de la partie
+    }
 
-            // Charger l'état du plateau de jeu
-            for (int i = 0; i < *hauteur; i++) {
-                for (int j = 0; j < *longueur; j++) {
-                    if (fscanf(fichier, "%d", &(*plateau)[i][j]) != 1) {
-                        printf("Erreur lors de la lecture du fichier de sauvegarde.\n");
-                        // Libérer la mémoire allouée pour le plateau de jeu
-                        for (int k = 0; k < i; k++) {
-                            free((*plateau)[k]);
-                        }
-                        free(*plateau);
-                        *plateau = NULL;
-                        fclose(fichier);
-                        return;
-                    }
-                }
-            }
+    // Lire les données de la sauvegarde à partir du fichier
+    // Assurez-vous que le format de la sauvegarde correspond à la structure de données utilisée dans le jeu
+    // et effectuez les opérations nécessaires pour charger les valeurs correctement
 
-            fclose(fichier);
-            printf("Partie chargée avec succès.\n");
+    // Exemple de lecture d'une sauvegarde :
+    fscanf(fichierSauvegarde, "%d %d %d %d", hauteur, longueur, symboles, score);
+
+    // Allouer l'espace mémoire pour le tableau de jeu
+    *board = (int**)malloc((*hauteur) * sizeof(int*));
+    for (int i = 0; i < *hauteur; i++) {
+        (*board)[i] = (int*)malloc((*longueur) * sizeof(int));
+    }
+
+    // Lire les valeurs du tableau de jeu à partir de la sauvegarde
+    for (int i = 0; i < *hauteur; i++) {
+        for (int j = 0; j < *longueur; j++) {
+            fscanf(fichierSauvegarde, "%d", &((*board)[i][j]));
         }
-    } else {
-        printf("Erreur lors de l'ouverture du fichier de sauvegarde.\n");
-    }
-}
-
-void obtenirCheminSauvegarde(char* chemin) {
-    const char* dossierSauvegarde = "sauvegardes";
-    const char* repertoireUtilisateur = getenv("HOME");
-
-    if (repertoireUtilisateur == NULL) {
-        printf("Impossible de trouver le répertoire de l'utilisateur.\n");
-        exit(1);
     }
 
-    snprintf(chemin, 100, "%s/%s", repertoireUtilisateur, dossierSauvegarde);
+    fclose(fichierSauvegarde);
+    return 1; // Chargement de la partie réussi
 }
 
-void afficherSauvegardes() {
-    char chemin[100];
-    obtenirCheminSauvegarde(chemin);
 
-    DIR *directory;
-    struct dirent *file;
+void sauteLigne(char* chaine) {
+    int longueur = strlen(chaine);
 
-    directory = opendir(chemin);
-
-     if (directory) {
-        int count = 1;
-        bool sauvegardesTrouvees = false; // Variable pour suivre si des sauvegardes ont été trouvées
-
-        printf("Liste des sauvegardes :\n");
-
-        while ((file = readdir(directory)) != NULL) {
-            if (file->d_type == DT_REG) { // Filtre les fichiers réguliers (sauvegardes)
-                printf("%d. %s\n", count, file->d_name);
-                count++;
-                sauvegardesTrouvees = true;
-            }
+    // Parcourir la chaîne jusqu'au saut de ligne ou la fin de la chaîne
+    for (int i = 0; i < longueur; i++) {
+        if (chaine[i] == '\n') {
+            chaine[i] = '\0'; // Remplacer le saut de ligne par le caractère nul pour terminer la chaîne
+            break;
         }
-
-        closedir(directory);
-
-        if (!sauvegardesTrouvees) {
-            printf("Aucune sauvegarde trouvée.\n");
-        }
-    } else {
-        printf("Erreur lors de l'ouverture du dossier de sauvegarde.\n");
-       exit(EXIT_FAILURE); // Quitte le programme avec un code d'erreur
     }
 }
-
-
-char nomSauvegarde[100];
